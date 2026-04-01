@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Word Code</title>
+
+<style>
+body {
+    margin: 0;
+    overflow: hidden;
+    font-family: Arial;
+    color: white;
+}
+
+/* MENÚ */
+#menu {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    background: url("inicio.png") no-repeat center center;
+    background-size: cover;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* CAJA INTRO */
+#introBox {
+    background: rgba(0,0,0,0.8);
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    max-width: 400px;
+    animation: fadeIn 1s;
+}
+
+#introBox button {
+    margin-top: 15px;
+    padding: 10px 20px;
+    font-size: 18px;
+    background: lime;
+    border: none;
+    cursor: pointer;
+}
+
+@keyframes fadeIn {
+    from {opacity:0; transform: scale(0.8);}
+    to {opacity:1; transform: scale(1);}
+}
+
+/* JUEGO */
+#game {
+    display: none;
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    background: url("south.png") no-repeat center center;
+    background-size: cover;
+}
+
+/* PLAYER */
+#player {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 150px;
+}
+
+/* PALABRAS */
+.word {
+    position: absolute;
+    padding: 15px 20px;
+    font-size: 22px;
+    background: rgba(0,150,255,0.85);
+    border-radius: 12px;
+    cursor: pointer;
+    text-align: center;
+    animation: float 3s infinite ease-in-out;
+}
+
+@keyframes float {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0); }
+}
+
+.correct { background: limegreen !important; }
+.wrong { background: red !important; }
+
+/* DISPARO */
+.bullet {
+    position: absolute;
+    width: 5px;
+    height: 20px;
+    background: yellow;
+    animation: shoot 0.3s linear forwards;
+}
+
+@keyframes shoot {
+    from { transform: translateY(0); opacity:1; }
+    to { transform: translateY(-300px); opacity:0; }
+}
+
+/* HUD MEJORADO */
+#hud {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    background: rgba(0,0,0,0.85);
+    padding: 15px 20px;
+    border-radius: 12px;
+    border: 2px solid cyan;
+    box-shadow: 0 0 15px cyan;
+    font-size: 18px;
+    min-width: 160px;
+}
+
+#level {
+    font-size: 22px;
+    color: cyan;
+    margin: 0 0 5px 0;
+}
+
+#time {
+    font-size: 26px;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.low-time {
+    animation: blink 0.6s infinite;
+}
+
+@keyframes blink {
+    0% { opacity: 1; }
+    50% { opacity: 0.3; }
+    100% { opacity: 1; }
+}
+
+#score {
+    color: gold;
+    font-size: 24px;
+    text-shadow: 0 0 10px gold;
+}
+
+/* FEEDBACK */
+#feedback {
+    font-weight: bold;
+}
+
+/* ORACIÓN */
+#sentence {
+    position: absolute;
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.7);
+    padding: 12px;
+}
+</style>
+</head>
+
+<body>
+
+<!-- MENÚ / TUTORIAL -->
+<div id="menu">
+    <div id="introBox">
+        <h1>🎮 WORD CODE</h1>
+        <p id="introText">Bienvenido a WORD CODE 💻</p>
+        <button onclick="nextIntro()">Siguiente</button>
+    </div>
+</div>
+
+<!-- JUEGO -->
+<div id="game">
+    <img src="eric.png" id="player">
+    <div id="hud">
+        <h3 id="level">Nivel 1</h3>
+        <p id="question"></p>
+        ⏱️ Tiempo: <span id="time">20</span><br>
+        ⭐ Puntos: <span id="score">0</span>
+        <p id="feedback"></p>
+    </div>
+    <div id="sentence">Oración: </div>
+</div>
+
+<audio id="clickSound" src="shoot.mp3"></audio>
+
+<script>
+const levels = [
+{question:"Forma: Yo depuro el código",answer:["I","debug","the","code"],words:["code","I","debug","the"]},
+{question:"Forma: Ella escribe código",answer:["She","writes","code"],words:["writes","She","code"]},
+{question:"Forma: Nosotros probamos el programa",answer:["We","test","the","program"],words:["program","We","test","the"]},
+{question:"Forma: Ellos corrigen errores",answer:["They","fix","bugs"],words:["fix","They","bugs"]},
+{question:"Forma: Tú ejecutas el programa",answer:["You","run","the","program"],words:["run","program","You","the"]},
+{question:"Forma: Yo aprendo programación",answer:["I","learn","programming"],words:["programming","learn","I"]}
+];
+
+const introMessages = [
+"Bienvenido a WORD CODE 💻",
+"Tu misión es formar oraciones correctamente",
+"Dispara a las palabras en el orden correcto",
+"Cada acierto te da puntos ⭐",
+"¡Cuidado! El tiempo es limitado ⏱️",
+"¿Listo para comenzar?"
+];
+let introStep = 0;
+
+let currentLevel=0, selectedWords=[], time=15, score=0, timer;
+
+function nextIntro(){
+    introStep++;
+    if(introStep < introMessages.length){
+        document.getElementById("introText").innerText = introMessages[introStep];
+    } else {
+        startGame();
+    }
+}
+
+function startGame(){
+    document.getElementById("menu").style.display="none";
+    document.getElementById("game").style.display="block";
+    loadLevel();
+}
+
+function startTimer(){
+    clearInterval(timer);
+    time=15;
+    document.getElementById("time").style.color="white";
+    document.getElementById("time").classList.remove("low-time");
+
+    timer=setInterval(()=>{
+        time--;
+        document.getElementById("time").innerText=time;
+
+        if(time<=5){
+            let t = document.getElementById("time");
+            t.style.color="red";
+            t.classList.add("low-time");
+        }
+
+        if(time<=0){
+            alert("⏱️ Tiempo agotado");
+            location.reload();
+        }
+    },1000);
+}
+
+function loadLevel(){
+    document.querySelectorAll(".word").forEach(w=>w.remove());
+    selectedWords=[];
+
+    let lvl=levels[currentLevel];
+
+    document.getElementById("question").innerText=lvl.question;
+    document.getElementById("level").innerText="Nivel "+(currentLevel+1);
+    document.getElementById("sentence").innerText="Oración: ";
+
+    lvl.words.forEach(word=>{
+        let div=document.createElement("div");
+        div.className="word";
+        div.innerText=word;
+
+        div.style.top=(Math.random()*60+10)+"%";
+        div.style.left=(Math.random()*60+20)+"%";
+
+        div.onclick=()=>shoot(div,word);
+
+        document.getElementById("game").appendChild(div);
+    });
+
+    startTimer();
+}
+
+function createBullet(){
+    const player=document.getElementById("player");
+    const game=document.getElementById("game");
+
+    const bullet=document.createElement("div");
+    bullet.className="bullet";
+
+    let p=player.getBoundingClientRect();
+    let g=game.getBoundingClientRect();
+
+    bullet.style.left=(p.left-g.left+p.width/2)+"px";
+    bullet.style.top=(p.top-g.top)+"px";
+
+    game.appendChild(bullet);
+    setTimeout(()=>bullet.remove(),300);
+}
+
+function animateScore(){
+    const s = document.getElementById("score");
+    s.style.transform = "scale(1.3)";
+    setTimeout(()=> s.style.transform = "scale(1)", 200);
+}
+
+function shoot(el,word){
+    createBullet();
+
+    selectedWords.push(word);
+
+    let correctWord=levels[currentLevel].answer[selectedWords.length-1];
+
+    if(word===correctWord){
+        el.classList.add("correct");
+        score+=50;
+        showFeedback("✔ Correcto","lime");
+    } else{
+        el.classList.add("wrong");
+        score-=20;
+        showFeedback("✖ Incorrecto","red");
+    }
+
+    animateScore();
+
+    document.getElementById("score").innerText=score;
+    document.getElementById("sentence").innerText="Oración: "+selectedWords.join(" ");
+
+    setTimeout(()=>el.remove(),300);
+
+    check();
+}
+
+function showFeedback(text,color){
+    let fb=document.getElementById("feedback");
+    fb.innerText=text;
+    fb.style.color=color;
+
+    setTimeout(()=>fb.innerText="",1000);
+}
+
+function check(){
+    let correct=levels[currentLevel].answer.join(" ");
+    let user=selectedWords.join(" ");
+
+    if(selectedWords.length === levels[currentLevel].answer.length){
+
+        if(user===correct){
+            showFeedback("🎉 Correcto","cyan");
+        } else {
+            showFeedback("❌ Incorrecto","red");
+        }
+
+        setTimeout(()=>{
+            currentLevel++;
+
+            if(currentLevel < levels.length){
+                loadLevel();
+            } else {
+                alert("🏆 Juego terminado\nPuntaje total: " + score);
+                location.reload();
+            }
+        },1000);
+    }
+}
+</script>
+
+</body>
+</html>
