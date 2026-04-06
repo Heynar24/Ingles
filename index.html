@@ -189,12 +189,48 @@ body {
 
 <script>
 const levels = [
-{question:"Forma: Yo depuro el código",answer:["I","debug","the","code"],words:["code","I","debug","the"]},
-{question:"Forma: Ella escribe código",answer:["She","writes","code"],words:["writes","She","code"]},
-{question:"Forma: Nosotros probamos el programa",answer:["We","test","the","program"],words:["program","We","test","the"]},
-{question:"Forma: Ellos corrigen errores",answer:["They","fix","bugs"],words:["fix","They","bugs"]},
-{question:"Forma: Tú ejecutas el programa",answer:["You","run","the","program"],words:["run","program","You","the"]},
-{question:"Forma: Yo aprendo programación",answer:["I","learn","programming"],words:["programming","learn","I"]}
+
+/* NIVEL 1 - FÁCIL */
+{
+    question:"Forma: Yo depuro el código",
+    answer:["I","debug","the","code"],
+    words:["code","I","debug","the"]
+},
+
+/* NIVEL 2 - FÁCIL */
+{
+    question:"Forma: Ella escribe código",
+    answer:["She","writes","code"],
+    words:["writes","She","code"]
+},
+
+/* NIVEL 3 - MEDIO */
+{
+    question:"Forma: Nosotros probamos el programa",
+    answer:["We","test","the","program"],
+    words:["program","We","test","the"]
+},
+
+/* NIVEL 4 - MEDIO */
+{
+    question:"Forma: Ellos corrigen errores del sistema",
+    answer:["They","fix","system","errors"],
+    words:["fix","They","errors","system"]
+},
+
+/* NIVEL 5 - MEDIO-ALTO */
+{
+    question:"Forma: Tú ejecutas el programa correctamente",
+    answer:["You","run","the","program","correctly"],
+    words:["run","program","You","the","correctly"]
+},
+
+/* NIVEL 6 - ALTO */
+{
+    question:"Forma: Yo aprendo programación todos los días",
+    answer:["I","learn","programming","every","day"],
+    words:["programming","learn","I","every","day"]
+}
 ];
 
 const introMessages = [
@@ -342,7 +378,6 @@ function check(){
         } else {
             showFeedback("❌ Incorrecto","red");
         }
-
         setTimeout(()=>{
             currentLevel++;
 
